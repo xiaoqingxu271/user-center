@@ -12,6 +12,6 @@ user-center:
     password: root
     database: 4
   jwt:
-    secret-key: oLoh@hOv1_%.6vUg8W|VJCFie_ffyzp/qmU9MX{oH;V # 密钥（至少32个字符）
+    secret-key: oLoh@hOv1_%.6vUg8W|VJCFie_ffyzp/qmU9MX{oH;V #密钥（至少32个字符）
     ttl: 7200000 # 过期时间2小时
     token-name: Authorization # 令牌名称

@@ -1,7 +1,6 @@
 HELP.md
-# 忽略application-dev.yml
-application-dev.yml
-
+# 忽略resources目录下的application-dev.yml（Spring Boot标准目录结构）
+src/main/resources/application-dev.yml
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
