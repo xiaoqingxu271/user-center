@@ -1,0 +1,49 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+spring:
+  application:
+    name: user-center
+  profiles:
+    active: dev # 激活开发环境配置
+  # 数据库配置
+  datasource:
+    driver-class-name: ${user-center.datasource.driver-class-name}
+    url: jdbc:mysql://${user-center.datasource.host}:${user-center.datasource.port}/${user-center.datasource.database}
+    username: ${user-center.datasource.username}
+    password: ${user-center.datasource.password}
+  redis:
+    host: ${user-center.redis.host}
+    port: ${user-center.redis.port}
+    password: ${user-center.redis.password}
+    database: ${user-center.redis.database}
+# MyBatis-Plus 配置
+mybatis-plus:
+  configuration:
+    # 开启驼峰命名映射
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      logic-delete-field: isDelete # 全局逻辑删除的实体字段名
+      logic-delete-value: 1 # 逻辑已删除值（默认为 1）
+      logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
+
+# 日志配置
+knife4j:
+  enable: true
+  openapi:
+    title: 用户中心接口文档
+    version: 1.0
+    group:
+      test1:
+        group-name: 默认分组
+        api-rule: package
+        api-rule-resources:
+          - com.lc.usercenter.controller
+# jwt配置
+user-center:
+  jwt:
+    secret-key: ${user-center.jwt.secret-key}
+    ttl: ${user-center.jwt.ttl}
+    token-name: ${user-center.jwt.token-name}

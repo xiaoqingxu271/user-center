@@ -1,4 +1,7 @@
 HELP.md
+# 忽略application-dev.yml
+application-dev.yml
+
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/

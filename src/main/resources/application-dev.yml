@@ -1,0 +1,17 @@
+user-center:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    host: localhost
+    port: 3306
+    database: user-center
+    username: root
+    password: root
+  redis:
+    host: localhost
+    port: 6379
+    password: root
+    database: 4
+  jwt:
+    secret-key: oLoh@hOv1_%.6vUg8W|VJCFie_ffyzp/qmU9MX{oH;V # 密钥（至少32个字符）
+    ttl: 7200000 # 过期时间2小时
+    token-name: Authorization # 令牌名称
