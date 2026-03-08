@@ -42,4 +42,16 @@ public class UserConstant {
      * 用户未注册
      */
     public static final String USER_NOT_REGISTERED = "用户未注册";
+    /**
+     * 用户未登录
+     */
+    public static final String NOT_LOGIN = "用户未登录";
+    /**
+     * 旧密码错误
+     */
+    public static final String OLD_PASSWORD_ERROR = "旧密码错误";
+    /**
+     * 新密码不能与旧密码相同
+     */
+    public static final String NEW_PASSWORD_CANNOT_BE_OLD_PASSWORD = "新密码不能与旧密码相同";
 }
