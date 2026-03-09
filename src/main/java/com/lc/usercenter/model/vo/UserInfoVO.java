@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
  * @version 1.0
  * @since 2026/3/8 16:05
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class UserInfoVO extends UserVO {
     /**
@@ -26,6 +27,11 @@ public class UserInfoVO extends UserVO {
      * 账号状态（0-启用 1-禁用）
      */
     private Integer status;
+
+    /**
+     * 角色标识（USER-普通用户，ADMIN-管理员）
+     */
+    private String role;
 
     /**
      * 创建时间

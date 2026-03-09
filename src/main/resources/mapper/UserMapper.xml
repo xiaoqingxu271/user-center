@@ -12,6 +12,7 @@
             <result property="gender" column="gender" />
             <result property="avatar" column="avatar" />
             <result property="status" column="status" />
+            <result property="role" column="role" />
             <result property="createTime" column="create_time" />
             <result property="createUserId" column="create_user_id" />
             <result property="updateTime" column="update_time" />
@@ -21,7 +22,7 @@
 
     <sql id="Base_Column_List">
         id,account,password,username,gender,avatar,
-        status,create_time,create_user_id,update_time,update_user_id,
-        is_deleted
+        status,role,create_time,create_user_id,update_time,
+        update_user_id,is_deleted
     </sql>
 </mapper>

@@ -36,7 +36,7 @@ public class User {
     private String username;
 
     /**
-     * 性别（0-男 1-女）
+     * 性别（0-未知 1-男 2-女）
      */
     private Integer gender;
 
@@ -49,6 +49,11 @@ public class User {
      * 账号状态（0-启用 1-禁用）
      */
     private Integer status;
+
+    /**
+     * 角色标识（USER-普通用户，ADMIN-管理员）
+     */
+    private String role;
 
     /**
      * 创建时间

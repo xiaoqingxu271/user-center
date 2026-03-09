@@ -54,4 +54,12 @@ public class UserConstant {
      * 新密码不能与旧密码相同
      */
     public static final String NEW_PASSWORD_CANNOT_BE_OLD_PASSWORD = "新密码不能与旧密码相同";
+    /**
+     * 账号状态值不合法
+     */
+    public static final String STATUS_VALUE_NOT_VALID = "账号状态值不合法";
+    /**
+     * 用户已禁用
+     */
+    public static final String USER_DISABLED = "用户已禁用";
 }

@@ -4,10 +4,14 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
+import cn.hutool.system.UserInfo;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lc.usercenter.common.BaseResponse;
+import com.lc.usercenter.common.ResultUtils;
 import com.lc.usercenter.common.context.BaseContext;
 import com.lc.usercenter.common.properties.JwtProperties;
 import com.lc.usercenter.constant.JwtClaimsConstant;
@@ -18,22 +22,22 @@ import com.lc.usercenter.exception.ThrowUtils;
 import com.lc.usercenter.mapper.UserMapper;
 import com.lc.usercenter.model.dto.ResetPasswordDTO;
 import com.lc.usercenter.model.dto.UserInfoDTO;
+import com.lc.usercenter.model.dto.UserPageQueryDTO;
 import com.lc.usercenter.model.dto.UserRegisterDTO;
 import com.lc.usercenter.model.entity.User;
-import com.lc.usercenter.model.vo.UserInfoVO;
-import com.lc.usercenter.model.vo.UserLoginVO;
-import com.lc.usercenter.model.vo.UserRegisterVO;
-import com.lc.usercenter.model.vo.UserVO;
+import com.lc.usercenter.model.vo.*;
 import com.lc.usercenter.service.UserService;
 import com.lc.usercenter.utils.JwtUtil;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author chun0
@@ -76,8 +80,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         int result = userMapper.insert(user);
         ThrowUtils.throwIf(result <= 0, ErrorCode.SYSTEM_ERROR);
         // 封装返回值
-        return new BaseResponse<>(ErrorCode.SUCCESS.getCode(), new UserRegisterVO(user.getId()),
-                ErrorCode.SUCCESS.getMessage());
+        return ResultUtils.success(new UserRegisterVO(user.getId()));
     }
 
     @Override
@@ -95,6 +98,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = userMapper.selectOne(userQueryWrapper);
         // 校验用户是否存在
         ThrowUtils.throwIf(user == null, ErrorCode.PARAMS_ERROR, UserConstant.USER_NOT_REGISTERED);
+        // 校验账号状态
+        ThrowUtils.throwIf(user.getStatus() == 1, ErrorCode.PARAMS_ERROR, UserConstant.USER_DISABLED);
         // 登录成功，生成token，封装返回对象
         UserLoginVO userLoginVO = new UserLoginVO();
         Map<String, Object> claims = new HashMap<>();
@@ -114,7 +119,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         userVO.setUsername(user.getUsername());
         userVO.setAvatar(user.getAvatar());
         userLoginVO.setUserInfo(userVO);
-        return new BaseResponse<UserLoginVO>(ErrorCode.SUCCESS.getCode(), userLoginVO, ErrorCode.SUCCESS.getMessage());
+        return ResultUtils.success(userLoginVO);
     }
 
     @Override
@@ -125,7 +130,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         stringRedisTemplate.delete(RedisConstant.redisTokenKey + userId);
         // 清除ThreadLocal中的当前用户id
         BaseContext.removeCurrentId();
-        return new BaseResponse<>(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMessage());
+        return ResultUtils.success(ErrorCode.SUCCESS.getMessage());
     }
 
     @Override
@@ -141,7 +146,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         UserInfoVO userInfoVO = new UserInfoVO();
         BeanUtil.copyProperties(user, userInfoVO);
         // 返回结果
-        return new BaseResponse<>(ErrorCode.SUCCESS.getCode(), userInfoVO, ErrorCode.SUCCESS.getMessage());
+        return ResultUtils.success(userInfoVO);
     }
 
     @Override
@@ -160,7 +165,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         int result = userMapper.update(lambdaUpdateWrapper);
         ThrowUtils.throwIf(result <= 0, ErrorCode.SYSTEM_ERROR);
         // 返回结果
-        return new BaseResponse<>(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMessage());
+        return ResultUtils.success(ErrorCode.SUCCESS.getMessage());
     }
 
     @Override
@@ -193,7 +198,106 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 删除redis中的token
         stringRedisTemplate.delete(RedisConstant.redisTokenKey + userId);
         // 返回结果
-        return new BaseResponse<>(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMessage());
+        return ResultUtils.success(ErrorCode.SUCCESS.getMessage());
+    }
+
+    @Override
+    public User getCurrentUserById(Long id) {
+        // 校验参数非空
+        ThrowUtils.throwIf(ObjectUtil.isEmpty(id), ErrorCode.PARAMS_ERROR, UserConstant.NOT_LOGIN);
+        return userMapper.selectById(id);
+    }
+
+    @Override
+    public BaseResponse<UserPageResultVO> getUserPage(UserPageQueryDTO userPageQueryDTO) {
+        // 校验参数非空
+        ThrowUtils.throwIf(ObjectUtil.isEmpty(userPageQueryDTO), ErrorCode.PARAMS_ERROR);
+        // 获取当前页数和每页记录数
+        int currentPage = userPageQueryDTO.getCurrent();
+        int pageSize = userPageQueryDTO.getPageSize();
+        // 构造分页条件
+        String account = userPageQueryDTO.getAccount();
+        String username = userPageQueryDTO.getUsername();
+        Integer status = userPageQueryDTO.getStatus();
+        String sortField = userPageQueryDTO.getSortField();
+        String sortOrder = userPageQueryDTO.getSortOrder();
+        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+        userQueryWrapper.like(StrUtil.isNotEmpty(account), "account", account);
+        userQueryWrapper.like(StrUtil.isNotEmpty(username), "username", username);
+        userQueryWrapper.eq(ObjectUtil.isNotEmpty(status), "status", status);
+        userQueryWrapper.orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equalsIgnoreCase("asc"), sortField);
+        Page<User> userPage = userMapper.selectPage(new Page<>(currentPage, pageSize), userQueryWrapper);
+        // 封装对象
+        UserPageResultVO userPageResultVO = new UserPageResultVO();
+        userPageResultVO.setTotal(userPage.getTotal());
+        // 转换为VO列表
+        List<UserInfoVO> userInfoVOList = userPage.getRecords().stream()
+                .map(user -> BeanUtil.copyProperties(user, UserInfoVO.class))
+                .collect(Collectors.toList());
+        userPageResultVO.setUserInfoVOList(userInfoVOList);
+        return ResultUtils.success(userPageResultVO);
+    }
+
+    @Override
+    public BaseResponse<UserInfoVO> getUserInfoById(Long id) {
+        // 校验参数非空
+        ThrowUtils.throwIf(ObjectUtil.isEmpty(id), ErrorCode.PARAMS_ERROR);
+        // 查询数据库
+        User user = userMapper.selectById(id);
+        // 封装VO对象
+        UserInfoVO userInfoVO = BeanUtil.copyProperties(user, UserInfoVO.class);
+        return ResultUtils.success(userInfoVO);
+    }
+
+    @Override
+    public BaseResponse<String> startOrUp(Long id, Integer status) {
+        // 校验参数非空
+        ThrowUtils.throwIf(ObjectUtil.isEmpty(id) || ObjectUtil.isEmpty(status), ErrorCode.PARAMS_ERROR);
+        // 校验状态值是否合法
+        ThrowUtils.throwIf(status != 0 && status != 1, ErrorCode.PARAMS_ERROR, UserConstant.STATUS_VALUE_NOT_VALID);
+        // 构造更新的查询条件
+        LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        // 动态改变状态值
+        status = status == 0 ? 1 : 0;
+        lambdaUpdateWrapper.set(User::getStatus, status);
+        lambdaUpdateWrapper.eq(User::getId, id);
+        // 更新数据库
+        int result = userMapper.update(lambdaUpdateWrapper);
+        ThrowUtils.throwIf(result <= 0, ErrorCode.SYSTEM_ERROR);
+        if (status == 1) {
+            // 禁用账号时, 从redis中删除token
+            stringRedisTemplate.delete(RedisConstant.redisTokenKey + id);
+        }
+        // 返回结果
+        return ResultUtils.success(ErrorCode.SUCCESS.getMessage());
+    }
+
+    @Override
+    public BaseResponse<String> deleteUserBatch(String ids) {
+        // 校验参数非空
+        ThrowUtils.throwIf(ObjectUtil.isEmpty(ids), ErrorCode.PARAMS_ERROR);
+        // 将ids转成Long集合
+        List<Long> idList = Arrays.stream(ids.split(",")).map(Long::valueOf).collect(Collectors.toList());
+        // 查询数据库
+        List<User> userList = userMapper.selectByIds(idList);
+        // 校验用户是否存在
+        ThrowUtils.throwIf(userList.size() != idList.size(), ErrorCode.PARAMS_ERROR);
+        // 构造更新的查询条件
+        LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        lambdaUpdateWrapper.set(User::getIsDeleted, 1);
+        lambdaUpdateWrapper.in(User::getId, idList);
+        // 更新数据库
+        int result = userMapper.update(lambdaUpdateWrapper);
+        // 校验更新是否成功
+        ThrowUtils.throwIf(result <= 0, ErrorCode.SYSTEM_ERROR);
+        // 构造key
+        List<String> tokenKeyList = idList.stream()
+                .map(id -> RedisConstant.redisTokenKey + id)
+                .collect(Collectors.toList());
+        // 从redis中删除上述用户的token
+        stringRedisTemplate.delete(tokenKeyList);
+        // 返回结果
+        return ResultUtils.success(ErrorCode.SUCCESS.getMessage());
     }
 
     /**

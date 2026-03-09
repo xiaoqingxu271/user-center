@@ -18,3 +18,7 @@ CREATE TABLE IF NOT EXISTS `user`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='用户表';
 
+-- 给原有user表新增role字段（简化版，单角色）
+ALTER TABLE `user`
+    ADD COLUMN `role` VARCHAR(20) NOT NULL DEFAULT 'USER' COMMENT '角色标识（USER-普通用户，ADMIN-管理员）'
+        AFTER `status`;
