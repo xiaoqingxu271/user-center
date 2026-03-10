@@ -4,8 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
-import cn.hutool.system.UserInfo;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -17,17 +15,16 @@ import com.lc.usercenter.common.properties.JwtProperties;
 import com.lc.usercenter.constant.JwtClaimsConstant;
 import com.lc.usercenter.constant.RedisConstant;
 import com.lc.usercenter.constant.UserConstant;
+import com.lc.usercenter.exception.BusinessException;
 import com.lc.usercenter.exception.ErrorCode;
 import com.lc.usercenter.exception.ThrowUtils;
 import com.lc.usercenter.mapper.UserMapper;
-import com.lc.usercenter.model.dto.ResetPasswordDTO;
-import com.lc.usercenter.model.dto.UserInfoDTO;
-import com.lc.usercenter.model.dto.UserPageQueryDTO;
-import com.lc.usercenter.model.dto.UserRegisterDTO;
+import com.lc.usercenter.model.dto.*;
 import com.lc.usercenter.model.entity.User;
 import com.lc.usercenter.model.vo.*;
 import com.lc.usercenter.service.UserService;
 import com.lc.usercenter.utils.JwtUtil;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -247,6 +244,68 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 封装VO对象
         UserInfoVO userInfoVO = BeanUtil.copyProperties(user, UserInfoVO.class);
         return ResultUtils.success(userInfoVO);
+    }
+
+    @Override
+    public BaseResponse<String> modifyUser(ModifyUserDTO modifyUserDTO) {
+        // 校验参数非空
+        ThrowUtils.throwIf(ObjectUtil.isEmpty(modifyUserDTO), ErrorCode.PARAMS_ERROR);
+        // 构造出查询条件
+        Long id = modifyUserDTO.getId();
+        String avatar = modifyUserDTO.getAvatar();
+        Integer gender = modifyUserDTO.getGender();
+        String username = modifyUserDTO.getUsername();
+        // 获取当前用户
+        Long currentId = BaseContext.getCurrentId();
+        LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        lambdaUpdateWrapper.set(ObjectUtil.isNotEmpty(avatar), User::getAvatar, avatar);
+        lambdaUpdateWrapper.set(ObjectUtil.isNotEmpty(gender), User::getGender, gender);
+        lambdaUpdateWrapper.set(ObjectUtil.isNotEmpty(username), User::getUsername, username);
+        lambdaUpdateWrapper.set(ObjectUtil.isNotEmpty(currentId), User::getUpdateUserId, currentId);
+        lambdaUpdateWrapper.eq(ObjectUtil.isNotEmpty(id), User::getId, id);
+        // 更新数据库
+        int result = userMapper.update(lambdaUpdateWrapper);
+        ThrowUtils.throwIf(result <= 0, ErrorCode.SYSTEM_ERROR);
+        // 返回结果
+        return ResultUtils.success(ErrorCode.SUCCESS.getMessage());
+    }
+
+    @Override
+    public BaseResponse<String> addUser(AddUserDTO addUserDTO) {
+        // 校验参数非空
+        ThrowUtils.throwIf(ObjectUtil.isEmpty(addUserDTO), ErrorCode.PARAMS_ERROR);
+        String account = addUserDTO.getAccount();
+        ThrowUtils.throwIf(StrUtil.isEmpty(account), ErrorCode.PARAMS_ERROR);
+        String password = addUserDTO.getPassword();
+        String role = addUserDTO.getRole();
+        String username = addUserDTO.getUsername();
+        Integer gender = addUserDTO.getGender();
+        String avatar = addUserDTO.getAvatar();
+        // 设置默认值
+        password = StrUtil.isEmpty(password) ? UserConstant.DEFAULT_PASSWORD : password;
+        username = StrUtil.isEmpty(username) ? UserConstant.NEW_USER_PREFIX + account : username;
+        avatar = StrUtil.isEmpty(avatar) ? UserConstant.DEFAULT_AVATAR : avatar;
+        // 构造插入条件
+        User user = new User();
+        user.setAccount(account);
+        user.setPassword(SecureUtil.md5(password));
+        user.setUsername(username);
+        user.setGender(gender);
+        user.setAvatar(avatar);
+        user.setRole(role);
+        user.setCreateUserId(BaseContext.getCurrentId());
+        // 插入数据库
+        int result = 0;
+        try {
+            result = userMapper.insert(user);
+        } catch (DuplicateKeyException e) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, UserConstant.ACCOUNT_EXISTS);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        ThrowUtils.throwIf(result <= 0, ErrorCode.SYSTEM_ERROR);
+        // 返回结果
+        return ResultUtils.success(ErrorCode.SUCCESS.getMessage());
     }
 
     @Override

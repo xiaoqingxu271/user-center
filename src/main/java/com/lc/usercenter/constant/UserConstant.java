@@ -62,4 +62,12 @@ public class UserConstant {
      * 用户已禁用
      */
     public static final String USER_DISABLED = "用户已禁用";
+    /**
+     * 默认密码
+     */
+    public static final String DEFAULT_PASSWORD = "123456";
+    /**
+     * 账号已存在
+     */
+    public static final String ACCOUNT_EXISTS = "账号已存在";
 }

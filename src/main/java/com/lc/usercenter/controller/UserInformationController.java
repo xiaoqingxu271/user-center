@@ -2,9 +2,7 @@ package com.lc.usercenter.controller;
 
 import com.lc.usercenter.annotation.RequireRole;
 import com.lc.usercenter.common.BaseResponse;
-import com.lc.usercenter.model.dto.ResetPasswordDTO;
-import com.lc.usercenter.model.dto.UserInfoDTO;
-import com.lc.usercenter.model.dto.UserPageQueryDTO;
+import com.lc.usercenter.model.dto.*;
 import com.lc.usercenter.model.enums.UserRoleEnum;
 import com.lc.usercenter.model.vo.UserInfoVO;
 import com.lc.usercenter.model.vo.UserPageResultVO;
@@ -114,6 +112,33 @@ public class UserInformationController {
     @RequireRole(value = UserRoleEnum.ADMIN)
     public BaseResponse<String> deleteUser(@PathVariable String ids) {
         return userService.deleteUserBatch(ids);
+    }
+
+
+    /**
+     * 修改用户信息
+     *
+     * @param modifyUserDTO 修改用户DTO
+     * @return 修改结果
+     */
+    @PutMapping("/modify")
+    @ApiOperation("修改用户信息")
+    @RequireRole(value = UserRoleEnum.ADMIN)
+    public BaseResponse<String> modifyUser(@RequestBody ModifyUserDTO modifyUserDTO) {
+        return userService.modifyUser(modifyUserDTO);
+    }
+
+    /**
+     * 添加用户
+     *
+     * @param addUserDTO 添加用户DTO
+     * @return 添加结果
+     */
+    @PostMapping("/add")
+    @ApiOperation("添加用户")
+    @RequireRole(value = UserRoleEnum.ADMIN)
+    public BaseResponse<String> addUser(@RequestBody AddUserDTO addUserDTO) {
+        return userService.addUser(addUserDTO);
     }
 
 }
