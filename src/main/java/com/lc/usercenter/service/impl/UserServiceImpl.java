@@ -91,10 +91,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
         // 设置查询条件
         userQueryWrapper.eq("account", account);
-        userQueryWrapper.eq("password", md5Password);
         User user = userMapper.selectOne(userQueryWrapper);
         // 校验用户是否存在
         ThrowUtils.throwIf(user == null, ErrorCode.PARAMS_ERROR, UserConstant.USER_NOT_REGISTERED);
+        // 校验密码是否正确
+        ThrowUtils.throwIf(!user.getPassword().equals(md5Password), ErrorCode.PARAMS_ERROR, UserConstant.PASSWORD_ERROR);
         // 校验账号状态
         ThrowUtils.throwIf(user.getStatus() == 1, ErrorCode.PARAMS_ERROR, UserConstant.USER_DISABLED);
         // 登录成功，生成token，封装返回对象

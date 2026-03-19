@@ -36,11 +36,13 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
                 .addPathPatterns("/user/**")
                 .excludePathPatterns(
                         "/user/authentication/login",
-                        "/user/authentication/register");
+                        "/user/authentication/register"
+                );
     }
 
     /**
      * 设置静态资源映射
+     *
      * @param registry 资源处理注册器
      */
     protected void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -50,6 +52,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 
     /**
      * 扩展消息转换器，使用Jackson
+     *
      * @param converters
      */
     protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
