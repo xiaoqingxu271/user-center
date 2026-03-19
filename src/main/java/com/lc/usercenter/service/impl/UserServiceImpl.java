@@ -116,6 +116,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         userVO.setId(user.getId());
         userVO.setUsername(user.getUsername());
         userVO.setAvatar(user.getAvatar());
+        userVO.setRole(user.getRole());
         userLoginVO.setUserInfo(userVO);
         return ResultUtils.success(userLoginVO);
     }

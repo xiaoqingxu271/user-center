@@ -29,11 +29,6 @@ public class UserInfoVO extends UserVO {
     private Integer status;
 
     /**
-     * 角色标识（USER-普通用户，ADMIN-管理员）
-     */
-    private String role;
-
-    /**
      * 创建时间
      */
     private LocalDateTime createTime;
