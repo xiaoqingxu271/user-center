@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS `user`
     `account`        VARCHAR(64)  NOT NULL COMMENT '账号（唯一）',
     `password`       VARCHAR(100) NOT NULL COMMENT '密码（加密存储）',
     `username`       VARCHAR(50)  DEFAULT NULL COMMENT '用户名/昵称',
-    `gender`         TINYINT      DEFAULT 0 COMMENT '性别（0-未知 1-男 2-女）',
+    `gender`         TINYINT      DEFAULT 0 COMMENT '性别（0-男 1-女）',
     `avatar`         VARCHAR(255) DEFAULT NULL COMMENT '头像URL',
     `status`         TINYINT      DEFAULT 0 COMMENT '账号状态（0-启用 1-禁用）',
     `create_time`    DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

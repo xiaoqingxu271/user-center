@@ -36,7 +36,7 @@ public class User {
     private String username;
 
     /**
-     * 性别（0-未知 1-男 2-女）
+     * 性别（0-男 1-女）
      */
     private Integer gender;
 
