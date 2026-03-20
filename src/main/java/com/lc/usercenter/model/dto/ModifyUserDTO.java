@@ -16,4 +16,9 @@ public class ModifyUserDTO extends UserInfoDTO {
      */
     private Long id;
 
+    /**
+     * 角色标识（USER-普通用户，ADMIN-管理员）
+     */
+    private String role;
+
 }

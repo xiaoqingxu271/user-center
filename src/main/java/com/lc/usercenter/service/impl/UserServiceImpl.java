@@ -257,12 +257,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         String avatar = modifyUserDTO.getAvatar();
         Integer gender = modifyUserDTO.getGender();
         String username = modifyUserDTO.getUsername();
+        String role = modifyUserDTO.getRole();
         // 获取当前用户
         Long currentId = BaseContext.getCurrentId();
         LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
-        lambdaUpdateWrapper.set(ObjectUtil.isNotEmpty(avatar), User::getAvatar, avatar);
+        lambdaUpdateWrapper.set(StrUtil.isNotEmpty(avatar), User::getAvatar, avatar);
         lambdaUpdateWrapper.set(ObjectUtil.isNotEmpty(gender), User::getGender, gender);
-        lambdaUpdateWrapper.set(ObjectUtil.isNotEmpty(username), User::getUsername, username);
+        lambdaUpdateWrapper.set(StrUtil.isNotEmpty(username), User::getUsername, username);
+        lambdaUpdateWrapper.set(StrUtil.isNotEmpty(role), User::getRole, role);
         lambdaUpdateWrapper.set(ObjectUtil.isNotEmpty(currentId), User::getUpdateUserId, currentId);
         lambdaUpdateWrapper.eq(ObjectUtil.isNotEmpty(id), User::getId, id);
         // 更新数据库
@@ -316,6 +318,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         ThrowUtils.throwIf(ObjectUtil.isEmpty(id) || ObjectUtil.isEmpty(status), ErrorCode.PARAMS_ERROR);
         // 校验状态值是否合法
         ThrowUtils.throwIf(status != 0 && status != 1, ErrorCode.PARAMS_ERROR, UserConstant.STATUS_VALUE_NOT_VALID);
+        // 获取当前用户信息
+        Long currentId = BaseContext.getCurrentId();
+        ThrowUtils.throwIf(currentId == id, ErrorCode.PARAMS_ERROR, UserConstant.NOW_ADMIN_NOT_DISABLED);
         // 构造更新的查询条件
         LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         // 动态改变状态值

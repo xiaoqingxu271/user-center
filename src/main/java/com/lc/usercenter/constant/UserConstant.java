@@ -74,4 +74,8 @@ public class UserConstant {
      * 密码错误
      */
     public static final String PASSWORD_ERROR = "密码错误";
+    /**
+     * 当前管理员不能禁用
+     */
+    public static final String NOW_ADMIN_NOT_DISABLED = "当前管理员不能禁用";
 }
