@@ -318,8 +318,9 @@ onMounted(() => {
 
 .avatar-container {
   position: relative;
-  display: inline-block;
-  margin-bottom: 0.75rem;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 0.75rem;
 }
 
 .main-avatar {
@@ -331,12 +332,12 @@ onMounted(() => {
   position: absolute;
   bottom: 0;
   right: 0;
-  font-size: 0.75rem;
-  padding: 0.25rem 0.625rem;
-  border-radius: 0.75rem;
-  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.15);
-  border: 0.125rem solid #fff;
-  transform: translate(15%, 15%);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 2px solid #fff;
+  transform: translate(30%, 30%);
 }
 
 .user-summary {
