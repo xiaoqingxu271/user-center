@@ -2,6 +2,7 @@ package com.lc.usercenter.controller;
 
 import com.lc.usercenter.common.BaseResponse;
 import com.lc.usercenter.common.ResultUtils;
+import com.lc.usercenter.exception.ErrorCode;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
